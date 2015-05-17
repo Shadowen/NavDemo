@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
 ///http://gamedev.stackexchange.com/questions/31021/quadtree-store-only-points-or-regions
 public class QuadtreeNode implements Iterable<Shape> {
@@ -95,7 +96,15 @@ public class QuadtreeNode implements Iterable<Shape> {
 		return true;
 	}
 
+	public boolean update(Shape s) {
+		// TODO
+		return false;
+	}
+
 	/**
+	 * This method involves constructing a data set from a tree structure and
+	 * its use should be minimized.
+	 * 
 	 * @return A set containing all the objects at this level or below in the
 	 *         quadtree.
 	 */
@@ -107,6 +116,12 @@ public class QuadtreeNode implements Iterable<Shape> {
 		return retobj;
 	}
 
+	/**
+	 * Retrieve all the objects using {@link #getObjects()} and return its
+	 * iterator. This method is suitable for use in <i>foreach</i> loops.<br>
+	 * This method involves constructing a data set from a tree structure and
+	 * its use should be minimized.
+	 */
 	@Override
 	public Iterator<Shape> iterator() {
 		return getObjects().iterator();
@@ -135,5 +150,22 @@ public class QuadtreeNode implements Iterable<Shape> {
 			ret = Math.max(ret, st.getDepthBelow() + 1);
 		}
 		return ret;
+	}
+
+	/**
+	 * Applies a consumer to the tree in an pre-order traversal.
+	 * 
+	 * @param consumer
+	 *            the consumer to apply
+	 */
+	public void processNodes(Consumer<QuadtreeNode> consumer) {
+		consumer.accept(this);
+		for (QuadtreeNode node : nodes) {
+			node.processNodes(consumer);
+		}
+	}
+
+	public Rectangle getBounds() {
+		return (Rectangle) bounds.clone();
 	}
 }

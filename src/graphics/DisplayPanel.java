@@ -3,10 +3,12 @@ package graphics;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.util.List;
+import java.util.function.Consumer;
 
 import javax.swing.JPanel;
 
@@ -65,7 +67,20 @@ public class DisplayPanel extends JPanel implements MouseListener,
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);
 
-		paintTree(g, qt.root, qt.root.getDepthBelow() + 1);
+		int totalDepth = qt.getDepth();
+		qt.processNodes(tree -> {
+			Rectangle bounds = tree.getBounds();
+
+			g.setColor(new Color(0, 0, 0, (int) (255 - (double) tree.getDepth()
+					/ totalDepth * 200)));
+			g.drawString("(" + String.valueOf(tree.getDepthBelow()) + ")",
+					bounds.x + 5 + (5 * tree.getDepth()), bounds.y + 15
+							+ (15 * tree.getDepth()));
+			g.drawString(String.valueOf(tree.getObjects().size()), bounds.x
+					+ 20 + (5 * tree.getDepth()),
+					bounds.y + 15 + (15 * tree.getDepth()));
+			g.drawRect(bounds.x, bounds.y, bounds.width, bounds.height);
+		});
 
 		if (mouseDownPosition != null) {
 			g.setColor(Color.GREEN);
@@ -86,22 +101,6 @@ public class DisplayPanel extends JPanel implements MouseListener,
 		for (Unit u : units) {
 			g.drawRect(u.shape.getBounds().x, u.shape.getBounds().y,
 					u.shape.getBounds().width, u.shape.getBounds().height);
-		}
-	}
-
-	public void paintTree(Graphics g, QuadtreeNode tree, int totalDepth) {
-		g.setColor(new Color(0, 0, 0, (int) (255 - (double) tree.getDepth()
-				/ totalDepth * 200)));
-		g.drawString("(" + String.valueOf(tree.getDepthBelow()) + ")",
-				tree.bounds.x + 5 + (5 * tree.getDepth()), tree.bounds.y + 15
-						+ (15 * tree.getDepth()));
-		g.drawString(String.valueOf(tree.getObjects().size()), tree.bounds.x
-				+ 20 + (5 * tree.getDepth()),
-				tree.bounds.y + 15 + (15 * tree.getDepth()));
-		g.drawRect(tree.bounds.x, tree.bounds.y, tree.bounds.width,
-				tree.bounds.height);
-		for (QuadtreeNode st : tree.nodes) {
-			paintTree(g, st, totalDepth);
 		}
 	}
 }
