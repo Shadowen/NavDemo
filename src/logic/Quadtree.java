@@ -20,16 +20,9 @@ public class Quadtree {
 	}
 
 	public void setBounds(Rectangle newBounds) {
-		// assert ((root.getObjects().size() + outOfBounds.size()) == 10);
-
-		root = new QuadtreeNode(newBounds);
 		outOfBounds.addAll(root.getObjects());
+		root = new QuadtreeNode(newBounds);
 
-		// System.out.println(root.getObjects().size());
-		// assert (outOfBounds.size() == 10);
-
-		// System.out.println("total"
-		// + (root.getObjects().size() + outOfBounds.size()));
 		Iterator<Shape> it = outOfBounds.iterator();
 		while (it.hasNext()) {
 			Shape s = it.next();
@@ -37,8 +30,6 @@ public class Quadtree {
 				it.remove();
 			}
 		}
-
-		// assert ((root.getObjects().size() + outOfBounds.size()) == 10);
 	}
 
 	public boolean insert(Shape s) {
