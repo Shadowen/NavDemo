@@ -8,6 +8,9 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.Stream;
+
+import javax.xml.transform.stream.StreamSource;
 
 /**
  * One node of the Quadtree implementation
@@ -252,5 +255,10 @@ public class QTNode<T extends Shape> implements Iterable<QTElement<T>> {
 		}
 
 		return null;
+	}
+
+	public Stream<QTElement<T>> stream() {
+		return Stream.concat(objects.stream(),
+				nodes.stream().flatMap(n -> n.stream()));
 	}
 }

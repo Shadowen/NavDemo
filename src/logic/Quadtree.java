@@ -100,7 +100,13 @@ public class Quadtree<T extends Shape> {
 	 * @return a QTElement
 	 */
 	public T getAt(Point point) {
-		QTElement<T> e = root.getAt(point);
-		return e == null ? null : e.payload;
+		stream().forEach(t -> System.out.println(t.toString()));
+		return stream().filter(e -> e.contains(point)).findFirst().orElse(null);
+		// QTElement<T> e = root.getAt(point);
+		// return e == null ? null : e.payload;
+	}
+
+	public Stream<T> stream() {
+		return root.stream().map(e -> e.payload);
 	}
 }
