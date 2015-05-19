@@ -7,7 +7,11 @@ import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.function.Consumer;
 
 import javax.swing.JPanel;
@@ -19,11 +23,12 @@ import logic.Unit;
 public class DisplayPanel extends JPanel implements MouseListener,
 		MouseMotionListener {
 	private List<Unit> units;
+	private Set<Unit> selectedUnits = new HashSet<>();
 	private Quadtree<Unit> qt;
 
 	private Point mouseDownPosition;
 	private Point mouseDragPosition;
-	private Unit unitAtMousePoint;
+	private Optional<Unit> unitAtMousePoint = Optional.empty();
 
 	private Graphics g;
 
@@ -54,6 +59,22 @@ public class DisplayPanel extends JPanel implements MouseListener,
 
 	@Override
 	public void mouseReleased(MouseEvent e) {
+		int left = Math.min(mouseDragPosition.x, mouseDownPosition.x);
+		int right = Math.max(mouseDragPosition.x, mouseDownPosition.x);
+		int top = Math.min(mouseDragPosition.y, mouseDownPosition.y);
+		int bottom = Math.max(mouseDragPosition.y, mouseDownPosition.y);
+		Rectangle selectRect = new Rectangle(left, top, right - left, bottom
+				- top);
+		selectedUnits.clear();
+		selectedUnits = qt.stream().filter(u -> u.intersects(selectRect))
+				.reduce(selectedUnits, (r, u) -> {
+					r.add(u);
+					return r;
+				}, (x, y) -> {
+					x.addAll(y);
+					return x;
+				});
+
 		mouseDownPosition = null;
 		mouseDragPosition = null;
 	}
@@ -66,7 +87,8 @@ public class DisplayPanel extends JPanel implements MouseListener,
 
 	@Override
 	public void mouseMoved(MouseEvent arg0) {
-		unitAtMousePoint = qt.getAt(arg0.getPoint());
+		unitAtMousePoint = qt.stream().filter(u -> u.contains(arg0.getPoint()))
+				.findFirst();
 	}
 
 	@Override
@@ -105,14 +127,15 @@ public class DisplayPanel extends JPanel implements MouseListener,
 		}
 
 		g.setColor(Color.BLACK);
-		for (Unit u : units) {
-			drawUnit(u);
-		}
-
-		if (unitAtMousePoint != null) {
+		units.forEach(u -> drawUnit(u));
+		unitAtMousePoint.ifPresent(u -> {
 			g.setColor(Color.BLUE);
-			drawUnit(unitAtMousePoint);
-		}
+			drawUnit(u);
+		});
+		selectedUnits.forEach(u -> {
+			g.setColor(Color.GREEN);
+			drawUnit(u);
+		});
 	}
 
 	/**
