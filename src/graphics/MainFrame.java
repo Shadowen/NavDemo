@@ -20,7 +20,7 @@ public class MainFrame extends JFrame implements ComponentListener {
 	}
 
 	private MovementManager movement;
-	private Quadtree qt;
+	private Quadtree<Unit> qt;
 
 	private DisplayPanel dp;
 
@@ -31,9 +31,9 @@ public class MainFrame extends JFrame implements ComponentListener {
 	public MainFrame() {
 		// Initialize
 		movement = new MovementManager();
-		qt = new Quadtree();
+		qt = new Quadtree<Unit>();
 		for (Unit u : movement.units) {
-			qt.insert(u.shape);
+			qt.insert(u);
 		}
 
 		// Setup

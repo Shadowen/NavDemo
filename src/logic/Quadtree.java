@@ -7,16 +7,16 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.function.Consumer;
 
-public class Quadtree {
-	private QuadtreeNode root;
+public class Quadtree<T extends Shape> {
+	private QuadtreeNode<T> root;
 	/**
 	 * Shapes that were inserted into the quadtree that are out of bounds of the
 	 * root level.
 	 */
-	private Set<Shape> outOfBounds;
+	private Set<QTElement<T>> outOfBounds;
 
 	public Quadtree() {
-		root = new QuadtreeNode(new Rectangle(0, 0, 0, 0));
+		root = new QuadtreeNode<>(new Rectangle(0, 0, 0, 0));
 		outOfBounds = new HashSet<>();
 	}
 
@@ -27,9 +27,9 @@ public class Quadtree {
 		root = new QuadtreeNode(newBounds);
 
 		// Add all the shapes to the new root
-		Iterator<Shape> it = outOfBounds.iterator();
+		Iterator<QTElement<T>> it = outOfBounds.iterator();
 		while (it.hasNext()) {
-			Shape s = it.next();
+			QTElement<T> s = it.next();
 			if (root.insert(s)) {
 				it.remove();
 			}
@@ -43,9 +43,10 @@ public class Quadtree {
 	 * @param s
 	 *            the shape to be added
 	 */
-	public void insert(Shape s) {
-		if (!root.insert(s)) {
-			outOfBounds.add(s);
+	public void insert(T s) {
+		QTElement<T> e = new QTElement<T>(s);
+		if (!root.insert(e)) {
+			outOfBounds.add(e);
 		}
 	}
 
@@ -55,7 +56,7 @@ public class Quadtree {
 	 * @param consumer
 	 *            the consumer that processes the nodes
 	 */
-	public void processNodes(Consumer<QuadtreeNode> consumer) {
+	public void processNodes(Consumer<QuadtreeNode<T>> consumer) {
 		root.processNodes(consumer);
 	}
 

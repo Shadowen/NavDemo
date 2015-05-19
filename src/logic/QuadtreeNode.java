@@ -10,16 +10,16 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 ///http://gamedev.stackexchange.com/questions/31021/quadtree-store-only-points-or-regions
-public class QuadtreeNode implements Iterable<Shape> {
+public class QuadtreeNode<T extends Shape> implements Iterable<QTElement<T>> {
 	private int MAX_OBJECTS = 5;
 	private int MAX_DEPTH = 5;
 
 	/** The number of levels above this node to the root. */
 	private final int depth;
-	private List<Shape> objects;
+	private List<QTElement<T>> objects;
 	public Rectangle bounds;
-	private QuadtreeNode parent;
-	public List<QuadtreeNode> nodes;
+	private QuadtreeNode<T> parent;
+	public List<QuadtreeNode<T>> nodes;
 
 	/**
 	 * Create a root QuadtreeNode. It has no parent by definition.
@@ -32,7 +32,7 @@ public class QuadtreeNode implements Iterable<Shape> {
 		this(null, pBounds, 0);
 	}
 
-	private QuadtreeNode(QuadtreeNode pparent, Rectangle pBounds, int idepth) {
+	private QuadtreeNode(QuadtreeNode<T> pparent, Rectangle pBounds, int idepth) {
 		parent = pparent;
 		objects = new ArrayList<>();
 		nodes = new ArrayList<>(4);
@@ -46,17 +46,17 @@ public class QuadtreeNode implements Iterable<Shape> {
 		int x = (int) bounds.getX();
 		int y = (int) bounds.getY();
 
-		nodes.add(new QuadtreeNode(this, new Rectangle(x, y, subWidth,
+		nodes.add(new QuadtreeNode<T>(this, new Rectangle(x, y, subWidth,
 				subHeight), depth + 1));
-		nodes.add(new QuadtreeNode(this, new Rectangle(x + subWidth, y,
+		nodes.add(new QuadtreeNode<T>(this, new Rectangle(x + subWidth, y,
 				subWidth, subHeight), depth + 1));
-		nodes.add(new QuadtreeNode(this, new Rectangle(x + subWidth, y
+		nodes.add(new QuadtreeNode<T>(this, new Rectangle(x + subWidth, y
 				+ subHeight, subWidth, subHeight), depth + 1));
-		nodes.add(new QuadtreeNode(this, new Rectangle(x, y + subHeight,
+		nodes.add(new QuadtreeNode<T>(this, new Rectangle(x, y + subHeight,
 				subWidth, subHeight), depth + 1));
 
 		// Reinsert all shapes into children
-		for (Shape o : objects) {
+		for (QTElement<T> o : objects) {
 			insert(o);
 		}
 		objects.clear();
@@ -71,8 +71,8 @@ public class QuadtreeNode implements Iterable<Shape> {
 	 *         <b>false</b> if the insertion failed because the object does not
 	 *         belong in this level of the quad tree.
 	 */
-	public boolean insert(Shape s) {
-		// Does the shape fit into this quadtree?
+	public boolean insert(QTElement<T> s) {
+		// Does the shape fit into this level? or any level above here?
 		if (!s.getBounds().intersects(bounds)) {
 			return false;
 		}
@@ -80,7 +80,7 @@ public class QuadtreeNode implements Iterable<Shape> {
 		// No split, add to existing children
 		if (!nodes.isEmpty()) {
 
-			for (QuadtreeNode st : nodes) {
+			for (QuadtreeNode<T> st : nodes) {
 				st.insert(s);
 			}
 			return true;
@@ -96,11 +96,6 @@ public class QuadtreeNode implements Iterable<Shape> {
 		return true;
 	}
 
-	public boolean update(Shape s) {
-		// TODO
-		return false;
-	}
-
 	/**
 	 * This method involves constructing a data set from a tree structure and
 	 * its use should be minimized.
@@ -108,9 +103,9 @@ public class QuadtreeNode implements Iterable<Shape> {
 	 * @return A set containing all the objects at this level or below in the
 	 *         quadtree.
 	 */
-	public Set<Shape> getObjects() {
-		Set<Shape> retobj = new HashSet<>(objects);
-		for (QuadtreeNode st : nodes) {
+	public Set<QTElement<T>> getObjects() {
+		Set<QTElement<T>> retobj = new HashSet<>(objects);
+		for (QuadtreeNode<T> st : nodes) {
 			retobj.addAll(st.getObjects());
 		}
 		return retobj;
@@ -123,7 +118,7 @@ public class QuadtreeNode implements Iterable<Shape> {
 	 * its use should be minimized.
 	 */
 	@Override
-	public Iterator<Shape> iterator() {
+	public Iterator<QTElement<T>> iterator() {
 		return getObjects().iterator();
 	}
 
@@ -146,7 +141,7 @@ public class QuadtreeNode implements Iterable<Shape> {
 	 */
 	public int getDepthBelow() {
 		int ret = 0;
-		for (QuadtreeNode st : nodes) {
+		for (QuadtreeNode<T> st : nodes) {
 			ret = Math.max(ret, st.getDepthBelow() + 1);
 		}
 		return ret;
@@ -158,9 +153,9 @@ public class QuadtreeNode implements Iterable<Shape> {
 	 * @param consumer
 	 *            the consumer to apply
 	 */
-	public void processNodes(Consumer<QuadtreeNode> consumer) {
+	public void processNodes(Consumer<QuadtreeNode<T>> consumer) {
 		consumer.accept(this);
-		for (QuadtreeNode node : nodes) {
+		for (QuadtreeNode<T> node : nodes) {
 			node.processNodes(consumer);
 		}
 	}

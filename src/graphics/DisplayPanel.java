@@ -21,9 +21,9 @@ public class DisplayPanel extends JPanel implements MouseListener,
 	private Point mouseDownPosition;
 	private Point mouseDragPosition;
 	private List<Unit> units;
-	private Quadtree qt;
+	private Quadtree<Unit> qt;
 
-	public DisplayPanel(List<Unit> u, Quadtree iqt) {
+	public DisplayPanel(List<Unit> u, Quadtree<Unit> iqt) {
 		units = u;
 		qt = iqt;
 		addMouseListener(this);
