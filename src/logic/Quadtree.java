@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -30,12 +31,20 @@ public class Quadtree<T extends Shape> {
 	 */
 	private Set<QTElement<T>> outOfBounds;
 
+	/** Create a new Quadtree. It has no elements initially. */
 	public Quadtree() {
 		elements = new HashMap<>();
 		root = new QTNode<>(new Rectangle(0, 0, 0, 0));
 		outOfBounds = new HashSet<>();
 	}
 
+	/**
+	 * Change the bounding rectangle of the quadtree. All current elements will
+	 * be re-inserted into the new tree.
+	 * 
+	 * @param newBounds
+	 *            The new bounding rectangle
+	 */
 	public void setBounds(Rectangle newBounds) {
 		// Use outOfBounds as a temp to store all the objects we are
 		// transferring
@@ -53,22 +62,29 @@ public class Quadtree<T extends Shape> {
 	}
 
 	/**
-	 * Add a shape to the quadtree. Shapes that do not lie within the quadtree
-	 * are stored.
+	 * Add an element to the quadtree. Shapes that do not lie within the
+	 * quadtree are stored for later insertion.
 	 * 
-	 * @param s
+	 * @param t
 	 *            the shape to be added
 	 */
-	public void insert(T s) {
-		QTElement<T> e = new QTElement<T>(s);
-		elements.put(s, e);
+	public void insert(T t) {
+		QTElement<T> e = new QTElement<T>(t);
+		elements.put(t, e);
 		if (!root.insert(e)) {
 			outOfBounds.add(e);
 		}
 	}
 
-	public boolean remove(T s) {
-		QTElement<T> e = elements.get(s);
+	/**
+	 * Removes an element from the quadtree.
+	 * 
+	 * @param t
+	 *            The element to be removed
+	 * @return <b>true</b> if the element was succesfully removed
+	 */
+	public boolean remove(T t) {
+		QTElement<T> e = elements.get(t);
 		if (outOfBounds.remove(e)) {
 			return true;
 		}
@@ -88,20 +104,33 @@ public class Quadtree<T extends Shape> {
 	/**
 	 * @return the depth of the deepest part of the tree
 	 */
-	public int getDepth() {
+	public int getTotalDepth() {
 		return root.getDepthBelow() + 1;
 	}
 
 	/**
-	 * Gets the {@link QTElement} at the point given.
+	 * Gets the element at the point given.
 	 * 
 	 * @param point
 	 *            the point of interest
-	 * @return a QTElement
+	 * @return an {@link Optional} containing the element
 	 */
-	public T getAt(Point point) {
-		stream().forEach(t -> System.out.println(t.toString()));
-		return stream().filter(e -> e.contains(point)).findFirst().orElse(null);
+	public Optional<T> getAt(Point point) {
+		return stream().filter(e -> e.contains(point)).findFirst();
+	}
+
+	/**
+	 * Gets the element nearest to the point given.
+	 * 
+	 * @param point
+	 *            the point of interest
+	 * @return an {@link Optional} containing the element
+	 */
+	public Optional<T> getNearest(Point point) {
+		return stream().sorted(
+				(t, v) -> (int) (point.distance(t.getBounds().x,
+						t.getBounds().y) - point.distance(v.getBounds().x,
+						v.getBounds().y))).findFirst();
 	}
 
 	public Stream<T> stream() {

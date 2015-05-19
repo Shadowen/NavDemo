@@ -28,6 +28,7 @@ public class DisplayPanel extends JPanel implements MouseListener,
 
 	private Point mouseDownPosition;
 	private Point mouseDragPosition;
+	private Point mousePosition;
 	private Optional<Unit> unitAtMousePoint = Optional.empty();
 
 	private Graphics g;
@@ -59,36 +60,42 @@ public class DisplayPanel extends JPanel implements MouseListener,
 
 	@Override
 	public void mouseReleased(MouseEvent e) {
-		int left = Math.min(mouseDragPosition.x, mouseDownPosition.x);
-		int right = Math.max(mouseDragPosition.x, mouseDownPosition.x);
-		int top = Math.min(mouseDragPosition.y, mouseDownPosition.y);
-		int bottom = Math.max(mouseDragPosition.y, mouseDownPosition.y);
-		Rectangle selectRect = new Rectangle(left, top, right - left, bottom
-				- top);
-		selectedUnits.clear();
-		selectedUnits = qt.stream().filter(u -> u.intersects(selectRect))
-				.reduce(selectedUnits, (r, u) -> {
-					r.add(u);
-					return r;
-				}, (x, y) -> {
-					x.addAll(y);
-					return x;
-				});
+		// TOOD make all mouse functions left click only
+		switch (e.getButton()) {
+		case MouseEvent.BUTTON1:
+			int left = Math.min(mouseDragPosition.x, mouseDownPosition.x);
+			int right = Math.max(mouseDragPosition.x, mouseDownPosition.x);
+			int top = Math.min(mouseDragPosition.y, mouseDownPosition.y);
+			int bottom = Math.max(mouseDragPosition.y, mouseDownPosition.y);
+			Rectangle selectRect = new Rectangle(left, top, right - left,
+					bottom - top);
+			selectedUnits.clear();
+			selectedUnits = qt.stream().filter(u -> u.intersects(selectRect))
+					.reduce(selectedUnits, (r, u) -> {
+						r.add(u);
+						return r;
+					}, (x, y) -> {
+						x.addAll(y);
+						return x;
+					});
 
-		mouseDownPosition = null;
-		mouseDragPosition = null;
+			mouseDownPosition = null;
+			mouseDragPosition = null;
+		default:
+			;
+		}
 	}
 
 	@Override
-	public void mouseDragged(MouseEvent arg0) {
-		mouseDragPosition = arg0.getPoint();
-		mouseMoved(arg0);
+	public void mouseDragged(MouseEvent e) {
+		mouseDragPosition = e.getPoint();
+		mouseMoved(e);
 	}
 
 	@Override
 	public void mouseMoved(MouseEvent arg0) {
-		unitAtMousePoint = qt.stream().filter(u -> u.contains(arg0.getPoint()))
-				.findFirst();
+		mousePosition = arg0.getPoint();
+		unitAtMousePoint = qt.getAt(mousePosition);
 	}
 
 	@Override
@@ -96,7 +103,7 @@ public class DisplayPanel extends JPanel implements MouseListener,
 		super.paintComponent(ig);
 		g = ig;
 
-		int totalDepth = qt.getDepth();
+		int totalDepth = qt.getTotalDepth();
 		qt.processNodes(tree -> {
 			if (tree.nodes.isEmpty()) {
 				Rectangle bounds = tree.getBounds();
@@ -126,14 +133,23 @@ public class DisplayPanel extends JPanel implements MouseListener,
 			g.fillOval(mouseDragPosition.x - 5, mouseDragPosition.y - 5, 10, 10);
 		}
 
-		g.setColor(Color.BLACK);
-		units.forEach(u -> drawUnit(u));
-		unitAtMousePoint.ifPresent(u -> {
-			g.setColor(Color.BLUE);
+		units.forEach(u -> {
+			g.setColor(Color.BLACK);
 			drawUnit(u);
+			g.setColor(Color.WHITE);
+			g.drawString(u.toString(), u.shape.getBounds().x,
+					u.shape.getBounds().y);
 		});
 		selectedUnits.forEach(u -> {
 			g.setColor(Color.GREEN);
+			drawUnit(u);
+		});
+		qt.getNearest(mousePosition).ifPresent(u -> {
+			g.setColor(Color.RED);
+			drawUnit(u);
+		});
+		unitAtMousePoint.ifPresent(u -> {
+			g.setColor(Color.BLUE);
 			drawUnit(u);
 		});
 	}

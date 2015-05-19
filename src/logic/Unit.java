@@ -8,9 +8,11 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
 public class Unit implements Shape {
+	public final int id;
 	public Shape shape;
 
-	public Unit(Shape ibounds) {
+	public Unit(int iid, Shape ibounds) {
+		id = iid;
 		shape = ibounds;
 	}
 
@@ -62,5 +64,9 @@ public class Unit implements Shape {
 	@Override
 	public boolean intersects(double arg0, double arg1, double arg2, double arg3) {
 		return shape.intersects(arg0, arg1, arg2, arg3);
+	}
+
+	public String toString() {
+		return String.valueOf(id);
 	}
 }

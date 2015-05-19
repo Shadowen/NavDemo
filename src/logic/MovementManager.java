@@ -16,7 +16,7 @@ public class MovementManager {
 		final int COLUMNS = 10;
 		final int COUNT = 10;
 		for (int i = 0; i < COUNT; i++) {
-			units.add(new Unit(new Rectangle(50 + i % COLUMNS * SPACING, 50
+			units.add(new Unit(i, new Rectangle(50 + i % COLUMNS * SPACING, 50
 					+ (i / COLUMNS) * SPACING, SIZE, SIZE)));
 		}
 	}
