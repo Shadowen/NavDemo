@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * One node of the Quadtree implementation
@@ -17,17 +18,17 @@ import java.util.function.Consumer;
  *            The type of element stored in the tree.
  */
 // /http://gamedev.stackexchange.com/questions/31021/quadtree-store-only-points-or-regions
-public class QuadtreeNode<T extends Shape> implements Iterable<QTElement<T>> {
+public class QTNode<T extends Shape> implements Iterable<QTElement<T>> {
 	private int MIN_OBJECTS = 0;
 	private int MAX_OBJECTS = 5;
-	private int MAX_DEPTH = 3;
+	private int MAX_DEPTH = 6;
 
 	/** The number of levels above this node to the root. */
 	private final int depth;
 	private Set<QTElement<T>> objects;
 	public Rectangle bounds;
-	private QuadtreeNode<T> parent;
-	public Set<QuadtreeNode<T>> nodes;
+	private QTNode<T> parent;
+	public Set<QTNode<T>> nodes;
 
 	/**
 	 * Create a root level QuadtreeNode. It has no parent by definition. This is
@@ -37,7 +38,7 @@ public class QuadtreeNode<T extends Shape> implements Iterable<QTElement<T>> {
 	 *            The bounding box of this level of quadtree. Any objects
 	 *            outside this area will be ignored.
 	 */
-	public QuadtreeNode(Rectangle pBounds) {
+	public QTNode(Rectangle pBounds) {
 		this(null, pBounds, 0);
 	}
 
@@ -53,7 +54,7 @@ public class QuadtreeNode<T extends Shape> implements Iterable<QTElement<T>> {
 	 * @param idepth
 	 *            The depth of the new node relative to the root.
 	 */
-	private QuadtreeNode(QuadtreeNode<T> pparent, Rectangle pBounds, int idepth) {
+	private QTNode(QTNode<T> pparent, Rectangle pBounds, int idepth) {
 		parent = pparent;
 		objects = new HashSet<>();
 		nodes = new HashSet<>(4);
@@ -67,14 +68,14 @@ public class QuadtreeNode<T extends Shape> implements Iterable<QTElement<T>> {
 		int x = (int) bounds.getX();
 		int y = (int) bounds.getY();
 
-		nodes.add(new QuadtreeNode<T>(this, new Rectangle(x, y, subWidth,
+		nodes.add(new QTNode<T>(this, new Rectangle(x, y, subWidth, subHeight),
+				depth + 1));
+		nodes.add(new QTNode<T>(this, new Rectangle(x + subWidth, y, subWidth,
 				subHeight), depth + 1));
-		nodes.add(new QuadtreeNode<T>(this, new Rectangle(x + subWidth, y,
-				subWidth, subHeight), depth + 1));
-		nodes.add(new QuadtreeNode<T>(this, new Rectangle(x + subWidth, y
-				+ subHeight, subWidth, subHeight), depth + 1));
-		nodes.add(new QuadtreeNode<T>(this, new Rectangle(x, y + subHeight,
-				subWidth, subHeight), depth + 1));
+		nodes.add(new QTNode<T>(this, new Rectangle(x + subWidth,
+				y + subHeight, subWidth, subHeight), depth + 1));
+		nodes.add(new QTNode<T>(this, new Rectangle(x, y + subHeight, subWidth,
+				subHeight), depth + 1));
 
 		// Reinsert all shapes into children
 		for (QTElement<T> o : objects) {
@@ -105,7 +106,7 @@ public class QuadtreeNode<T extends Shape> implements Iterable<QTElement<T>> {
 
 		// No split, add to existing children
 		if (!nodes.isEmpty()) {
-			for (QuadtreeNode<T> st : nodes) {
+			for (QTNode<T> st : nodes) {
 				st.insert(e);
 			}
 			return true;
@@ -129,7 +130,7 @@ public class QuadtreeNode<T extends Shape> implements Iterable<QTElement<T>> {
 
 		// Find it
 		if (!nodes.isEmpty()) {
-			for (QuadtreeNode<T> st : nodes) {
+			for (QTNode<T> st : nodes) {
 				st.remove(e);
 			}
 			// Merge
@@ -144,7 +145,7 @@ public class QuadtreeNode<T extends Shape> implements Iterable<QTElement<T>> {
 	}
 
 	private void merge() {
-		for (QuadtreeNode<T> n : nodes) {
+		for (QTNode<T> n : nodes) {
 			objects.addAll(n.objects);
 		}
 		nodes.clear();
@@ -172,7 +173,7 @@ public class QuadtreeNode<T extends Shape> implements Iterable<QTElement<T>> {
 	 */
 	public Set<QTElement<T>> getObjects() {
 		Set<QTElement<T>> retobj = new HashSet<>(objects);
-		for (QuadtreeNode<T> st : nodes) {
+		for (QTNode<T> st : nodes) {
 			retobj.addAll(st.getObjects());
 		}
 		return retobj;
@@ -208,21 +209,21 @@ public class QuadtreeNode<T extends Shape> implements Iterable<QTElement<T>> {
 	 */
 	public int getDepthBelow() {
 		int ret = 0;
-		for (QuadtreeNode<T> st : nodes) {
+		for (QTNode<T> st : nodes) {
 			ret = Math.max(ret, st.getDepthBelow() + 1);
 		}
 		return ret;
 	}
 
 	/**
-	 * Applies a consumer to the tree in an pre-order traversal.
+	 * Applies a consumer to the tree in pre-order.
 	 * 
 	 * @param consumer
 	 *            the consumer to apply
 	 */
-	public void processNodes(Consumer<QuadtreeNode<T>> consumer) {
+	public void processNodes(Consumer<QTNode<T>> consumer) {
 		consumer.accept(this);
-		for (QuadtreeNode<T> node : nodes) {
+		for (QTNode<T> node : nodes) {
 			node.processNodes(consumer);
 		}
 	}
@@ -238,7 +239,7 @@ public class QuadtreeNode<T extends Shape> implements Iterable<QTElement<T>> {
 		}
 
 		// Find it
-		for (QuadtreeNode<T> st : nodes) {
+		for (QTNode<T> st : nodes) {
 			QTElement<T> sto = st.getAt(point);
 			if (sto != null) {
 				return sto;

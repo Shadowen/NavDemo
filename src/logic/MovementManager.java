@@ -2,13 +2,14 @@ package logic;
 
 import java.awt.Rectangle;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 public class MovementManager {
 	public List<Unit> units;
 
 	public MovementManager() {
-		units = new ArrayList<Unit>();
+		units = new LinkedList<Unit>();
 
 		final int SPACING = 30;
 		final int SIZE = 20;

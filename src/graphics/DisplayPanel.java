@@ -13,7 +13,7 @@ import java.util.function.Consumer;
 import javax.swing.JPanel;
 
 import logic.Quadtree;
-import logic.QuadtreeNode;
+import logic.QTNode;
 import logic.Unit;
 
 public class DisplayPanel extends JPanel implements MouseListener,
@@ -24,6 +24,8 @@ public class DisplayPanel extends JPanel implements MouseListener,
 	private Point mouseDownPosition;
 	private Point mouseDragPosition;
 	private Unit unitAtMousePoint;
+
+	private Graphics g;
 
 	public DisplayPanel(List<Unit> u, Quadtree<Unit> iqt) {
 		units = u;
@@ -68,22 +70,23 @@ public class DisplayPanel extends JPanel implements MouseListener,
 	}
 
 	@Override
-	public void paintComponent(Graphics g) {
-		super.paintComponent(g);
+	public void paintComponent(Graphics ig) {
+		super.paintComponent(ig);
+		g = ig;
 
 		int totalDepth = qt.getDepth();
 		qt.processNodes(tree -> {
-			Rectangle bounds = tree.getBounds();
-
-			g.setColor(new Color(0, 0, 0, (int) (255 - (double) tree.getDepth()
-					/ totalDepth * 200)));
-			g.drawString("(" + String.valueOf(tree.getDepthBelow()) + ")",
-					bounds.x + 5 + (5 * tree.getDepth()), bounds.y + 15
-							+ (15 * tree.getDepth()));
-			g.drawString(String.valueOf(tree.getObjects().size()), bounds.x
-					+ 20 + (5 * tree.getDepth()),
-					bounds.y + 15 + (15 * tree.getDepth()));
-			g.drawRect(bounds.x, bounds.y, bounds.width, bounds.height);
+			if (tree.nodes.isEmpty()) {
+				Rectangle bounds = tree.getBounds();
+				g.setColor(new Color(0, 0, 0, (int) (255 - (double) tree
+						.getDepth() / totalDepth * 200)));
+				g.drawString("Depth: " + String.valueOf(tree.getDepth()),
+						bounds.x + 5, bounds.y + 15);
+				g.drawString(
+						"Objects: " + String.valueOf(tree.getObjects().size()),
+						bounds.x + 5, bounds.y + 30);
+				g.drawRect(bounds.x, bounds.y, bounds.width, bounds.height);
+			}
 		});
 
 		if (mouseDownPosition != null) {
@@ -103,16 +106,22 @@ public class DisplayPanel extends JPanel implements MouseListener,
 
 		g.setColor(Color.BLACK);
 		for (Unit u : units) {
-			drawUnit(g, u);
+			drawUnit(u);
 		}
 
 		if (unitAtMousePoint != null) {
 			g.setColor(Color.BLUE);
-			drawUnit(g, unitAtMousePoint);
+			drawUnit(unitAtMousePoint);
 		}
 	}
 
-	private void drawUnit(Graphics g, Unit u) {
+	/**
+	 * Draw a single unit.
+	 * 
+	 * @param u
+	 *            The unit to be drawn
+	 */
+	private void drawUnit(Unit u) {
 		g.fillRect(u.shape.getBounds().x, u.shape.getBounds().y,
 				u.shape.getBounds().width, u.shape.getBounds().height);
 	}

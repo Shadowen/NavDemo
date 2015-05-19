@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 /**
  * 
@@ -22,7 +23,7 @@ public class Quadtree<T extends Shape> {
 	private Map<T, QTElement<T>> elements;
 
 	/** Root level of the Quadtree. */
-	private QuadtreeNode<T> root;
+	private QTNode<T> root;
 	/**
 	 * Shapes that were inserted into the quadtree that are out of bounds of the
 	 * root level.
@@ -31,7 +32,7 @@ public class Quadtree<T extends Shape> {
 
 	public Quadtree() {
 		elements = new HashMap<>();
-		root = new QuadtreeNode<>(new Rectangle(0, 0, 0, 0));
+		root = new QTNode<>(new Rectangle(0, 0, 0, 0));
 		outOfBounds = new HashSet<>();
 	}
 
@@ -39,7 +40,7 @@ public class Quadtree<T extends Shape> {
 		// Use outOfBounds as a temp to store all the objects we are
 		// transferring
 		outOfBounds.addAll(root.getObjects());
-		root = new QuadtreeNode<T>(newBounds);
+		root = new QTNode<T>(newBounds);
 
 		// Add all the shapes to the new root
 		Iterator<QTElement<T>> it = outOfBounds.iterator();
@@ -80,7 +81,7 @@ public class Quadtree<T extends Shape> {
 	 * @param consumer
 	 *            the consumer that processes the nodes
 	 */
-	public void processNodes(Consumer<QuadtreeNode<T>> consumer) {
+	public void processNodes(Consumer<QTNode<T>> consumer) {
 		root.processNodes(consumer);
 	}
 

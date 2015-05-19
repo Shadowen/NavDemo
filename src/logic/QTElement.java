@@ -7,8 +7,8 @@ import java.awt.geom.PathIterator;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
-public class QTElement<T extends Shape> implements Shape {
-	public QuadtreeNode<T> containingNode;
+class QTElement<T extends Shape> implements Shape {
+	public QTNode<T> containingNode;
 	public T payload;
 
 	public QTElement(T ipayload) {
