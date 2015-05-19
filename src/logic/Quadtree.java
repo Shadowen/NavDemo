@@ -1,13 +1,27 @@
 package logic;
 
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Shape;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 
+/**
+ * 
+ * @author wesley
+ *
+ * @param <T>
+ *            The type of element the Quadtree is to store.
+ */
 public class Quadtree<T extends Shape> {
+	/** Stores the {@link QTElement} corresponding to each item stored. */
+	private Map<T, QTElement<T>> elements;
+
+	/** Root level of the Quadtree. */
 	private QuadtreeNode<T> root;
 	/**
 	 * Shapes that were inserted into the quadtree that are out of bounds of the
@@ -16,6 +30,7 @@ public class Quadtree<T extends Shape> {
 	private Set<QTElement<T>> outOfBounds;
 
 	public Quadtree() {
+		elements = new HashMap<>();
 		root = new QuadtreeNode<>(new Rectangle(0, 0, 0, 0));
 		outOfBounds = new HashSet<>();
 	}
@@ -24,7 +39,7 @@ public class Quadtree<T extends Shape> {
 		// Use outOfBounds as a temp to store all the objects we are
 		// transferring
 		outOfBounds.addAll(root.getObjects());
-		root = new QuadtreeNode(newBounds);
+		root = new QuadtreeNode<T>(newBounds);
 
 		// Add all the shapes to the new root
 		Iterator<QTElement<T>> it = outOfBounds.iterator();
@@ -45,9 +60,18 @@ public class Quadtree<T extends Shape> {
 	 */
 	public void insert(T s) {
 		QTElement<T> e = new QTElement<T>(s);
+		elements.put(s, e);
 		if (!root.insert(e)) {
 			outOfBounds.add(e);
 		}
+	}
+
+	public boolean remove(T s) {
+		QTElement<T> e = elements.get(s);
+		if (outOfBounds.remove(e)) {
+			return true;
+		}
+		return root.remove(e);
 	}
 
 	/**
@@ -65,5 +89,17 @@ public class Quadtree<T extends Shape> {
 	 */
 	public int getDepth() {
 		return root.getDepthBelow() + 1;
+	}
+
+	/**
+	 * Gets the {@link QTElement} at the point given.
+	 * 
+	 * @param point
+	 *            the point of interest
+	 * @return a QTElement
+	 */
+	public T getAt(Point point) {
+		QTElement<T> e = root.getAt(point);
+		return e == null ? null : e.payload;
 	}
 }

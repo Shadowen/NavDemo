@@ -18,10 +18,12 @@ import logic.Unit;
 
 public class DisplayPanel extends JPanel implements MouseListener,
 		MouseMotionListener {
-	private Point mouseDownPosition;
-	private Point mouseDragPosition;
 	private List<Unit> units;
 	private Quadtree<Unit> qt;
+
+	private Point mouseDownPosition;
+	private Point mouseDragPosition;
+	private Unit unitAtMousePoint;
 
 	public DisplayPanel(List<Unit> u, Quadtree<Unit> iqt) {
 		units = u;
@@ -57,10 +59,12 @@ public class DisplayPanel extends JPanel implements MouseListener,
 	@Override
 	public void mouseDragged(MouseEvent arg0) {
 		mouseDragPosition = arg0.getPoint();
+		mouseMoved(arg0);
 	}
 
 	@Override
 	public void mouseMoved(MouseEvent arg0) {
+		unitAtMousePoint = qt.getAt(arg0.getPoint());
 	}
 
 	@Override
@@ -99,8 +103,17 @@ public class DisplayPanel extends JPanel implements MouseListener,
 
 		g.setColor(Color.BLACK);
 		for (Unit u : units) {
-			g.drawRect(u.shape.getBounds().x, u.shape.getBounds().y,
-					u.shape.getBounds().width, u.shape.getBounds().height);
+			drawUnit(g, u);
 		}
+
+		if (unitAtMousePoint != null) {
+			g.setColor(Color.BLUE);
+			drawUnit(g, unitAtMousePoint);
+		}
+	}
+
+	private void drawUnit(Graphics g, Unit u) {
+		g.fillRect(u.shape.getBounds().x, u.shape.getBounds().y,
+				u.shape.getBounds().width, u.shape.getBounds().height);
 	}
 }

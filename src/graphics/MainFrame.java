@@ -35,7 +35,6 @@ public class MainFrame extends JFrame implements ComponentListener {
 		for (Unit u : movement.units) {
 			qt.insert(u);
 		}
-
 		// Setup
 		dp = new DisplayPanel(movement.units, qt);
 		setContentPane(dp);
