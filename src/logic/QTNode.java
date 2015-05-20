@@ -22,12 +22,22 @@ import javax.xml.transform.stream.StreamSource;
  */
 // /http://gamedev.stackexchange.com/questions/31021/quadtree-store-only-points-or-regions
 public class QTNode<T extends Shape> implements Iterable<QTElement<T>> {
+	/**
+	 * Minimum number of objects in a QTNode before it is collapsed into a
+	 * higher level node
+	 */
 	private int MIN_OBJECTS = 0;
+	/**
+	 * Maximum number of objects in a QTNode before it is decomposed into
+	 * smaller nodes
+	 */
 	private int MAX_OBJECTS = 5;
-	private int MAX_DEPTH = 6;
+	/** Maximum depth of the tree */
+	private int MAX_DEPTH = 5;
 
 	/** The number of levels above this node to the root. */
 	private final int depth;
+	/** Objects contained at the leaf level of the Quadtree */
 	private Set<QTElement<T>> objects;
 	public Rectangle bounds;
 	private QTNode<T> parent;
@@ -60,7 +70,7 @@ public class QTNode<T extends Shape> implements Iterable<QTElement<T>> {
 	private QTNode(QTNode<T> pparent, Rectangle pBounds, int idepth) {
 		parent = pparent;
 		objects = new HashSet<>();
-		nodes = new HashSet<>(4);
+		nodes = new HashSet<>();
 		bounds = pBounds;
 		depth = idepth;
 	}

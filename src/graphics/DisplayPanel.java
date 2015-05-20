@@ -42,6 +42,12 @@ public class DisplayPanel extends JPanel implements MouseListener,
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
+		qt.stream().filter(u -> u.contains(e.getPoint())).findFirst()
+				.ifPresent(u -> {
+					selectedUnits.clear();
+					selectedUnits.add(u);
+				});
+		;
 	}
 
 	@Override
