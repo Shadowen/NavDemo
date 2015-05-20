@@ -9,8 +9,10 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.Spliterators;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 /**
  * 
@@ -134,6 +136,9 @@ public class Quadtree<T extends Shape> {
 	}
 
 	public Stream<T> stream() {
-		return root.stream().map(e -> e.payload);
+		// TODO parallel stream?
+		return StreamSupport.stream(root.spliterator(), false).map(
+				e -> e.payload);
+		// return root.stream().map(e -> e.payload);
 	}
 }

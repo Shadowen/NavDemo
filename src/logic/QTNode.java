@@ -3,9 +3,14 @@ package logic;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Shape;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Queue;
 import java.util.Set;
+import java.util.Spliterator;
+import java.util.Stack;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -193,17 +198,6 @@ public class QTNode<T extends Shape> implements Iterable<QTElement<T>> {
 	}
 
 	/**
-	 * Retrieve all the objects using {@link #getObjects()} and return its
-	 * iterator. This method is suitable for use in <i>foreach</i> loops.<br>
-	 * This method involves constructing a data set from a tree structure and
-	 * its use should be minimized.
-	 */
-	@Override
-	public Iterator<QTElement<T>> iterator() {
-		return getObjects().iterator();
-	}
-
-	/**
 	 * Gets the depth of this node in the quadtree structure. The depth is
 	 * defined as the number of levels of nodes above this node to the root.<br>
 	 * This function returns a stored value, so there are no performance
@@ -265,6 +259,68 @@ public class QTNode<T extends Shape> implements Iterable<QTElement<T>> {
 		}
 
 		return null;
+	}
+
+	/**
+	 * Retrieve all the objects using {@link #getObjects()} and return its
+	 * iterator. This method is suitable for use in <i>foreach</i> loops.<br>
+	 * This method involves constructing a data set from a tree structure and
+	 * its use should be minimized.
+	 */
+	@Deprecated
+	@Override
+	public Iterator<QTElement<T>> iterator() {
+		return getObjects().iterator();
+	}
+
+	public Spliterator<T> spliterator() {
+
+	}
+
+	private class Splitt implements Spliterator<QTElement<T>> {
+		private Deque<QTNode<T>> stack;
+		private QTElement<T> next;
+		private Iterator<QTElement<T>> curit;
+
+		public Splitt() {
+			stack = new ArrayDeque<>();
+			stack.add(QTNode.this);
+		}
+
+		@Override
+		public int characteristics() {
+			return NONNULL | IMMUTABLE;
+		}
+
+		@Override
+		public long estimateSize() {
+			// TODO better estimate
+			return stack.size();
+		}
+
+		@Override
+		public boolean tryAdvance(Consumer<? super QTElement<T>> arg0) {
+			if (stack.isEmpty()) {
+				return false;
+			}
+
+			while (!stack.peek().nodes.isEmpty()) {
+				// Expand the stack
+				stack.pop().nodes.forEach(stack::add);
+				if (stack.isEmpty()) {
+					return false;
+				}
+			}
+			curit = stack.pop().objects.iterator();
+			arg0.accept(curit.next());
+			return true;
+		}
+
+		@Override
+		public Spliterator<QTElement<T>> trySplit() {
+			// TODO parallelize?
+			return null;
+		}
 	}
 
 	public Stream<QTElement<T>> stream() {
