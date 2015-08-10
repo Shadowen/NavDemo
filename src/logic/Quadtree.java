@@ -116,7 +116,7 @@ public class Quadtree<T extends Shape> {
 	 * @return an {@link Optional} containing the element
 	 */
 	public Optional<T> getAt(Point point) {
-		return stream().filter(e -> e.contains(point)).findFirst();
+		return root.getAt(point).map(e -> e.payload);
 	}
 
 	/**

@@ -5,6 +5,7 @@ import java.awt.Rectangle;
 import java.awt.Shape;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -245,26 +246,26 @@ public class QTNode<T extends Shape> implements Iterable<QTElement<T>> {
 		return (Rectangle) bounds.clone();
 	}
 
-	public QTElement<T> getAt(Point point) {
+	public Optional<QTElement<T>> getAt(Point point) {
 		// Does the shape fit into this level?
 		if (!bounds.contains(point)) {
-			return null;
+			return Optional.empty();
 		}
 
 		// Find it
 		for (QTNode<T> st : nodes) {
-			QTElement<T> sto = st.getAt(point);
-			if (sto != null) {
+			Optional<QTElement<T>> sto = st.getAt(point);
+			if (sto.isPresent()) {
 				return sto;
 			}
 		}
 		for (QTElement<T> e : objects) {
 			if (e.contains(point)) {
-				return e;
+				return Optional.of(e);
 			}
 		}
 
-		return null;
+		return Optional.empty();
 	}
 
 	public Stream<QTElement<T>> stream() {

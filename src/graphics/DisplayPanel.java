@@ -28,7 +28,7 @@ public class DisplayPanel extends JPanel implements MouseListener,
 
 	private Point mouseDownPosition;
 	private Point mouseDragPosition;
-	private Point mousePosition;
+	private Point mousePosition = new Point(0, 0);
 	private Optional<Unit> unitAtMousePoint = Optional.empty();
 
 	private Graphics g;
